@@ -25,6 +25,7 @@ import GuideMockup from './components/GuideMockup';
 import QuizPage from './components/QuizPage';
 import StudioDashboard from './components/StudioDashboard';
 import CostCalculator from './components/CostCalculator';
+import CheckoutPage from './components/CheckoutPage';
 
 const App: React.FC = () => {
   const [path, setPath] = useState(window.location.pathname);
@@ -88,6 +89,11 @@ const App: React.FC = () => {
   // Secret route for verified buyers
   if (path === '/download-guide-success-x9k2') {
     return <ThankYouPage />;
+  }
+
+  // TEMP: Checkout Demo Page
+  if (path === '/checkout-demo') {
+    return <CheckoutPage />;
   }
 
   if (path === '/privacy') {
