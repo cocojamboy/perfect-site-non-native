@@ -168,10 +168,10 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                     />
                     <div>
                         <div className="font-bold text-sm text-[#FF4A22] uppercase mb-1">
-                            Yes! Add Priority Application Review (+$17)
+                            Yes! Add Priority Application Review (+$49)
                         </div>
                         <p className="text-[11px] leading-tight opacity-70">
-                            Get your CV & Intro Video reviewed by our team with feedback within 48 hours. Ensure you don't get filtered out.
+                            Get your CV & Intro Video reviewed by our team with feedback within 48 work hours. Ensure you don't get filtered out.
                         </p>
                     </div>
                 </label>
@@ -203,7 +203,10 @@ const CheckoutPage: React.FC = () => {
     const [couponCode, setCouponCode] = useState("");
 
     // Price Logic
-    let totalAmount = hasBump ? 36 : 19;
+    const BASE_PRICE = 19;
+    const BUMP_PRICE = 49; // Updated to $49
+    let totalAmount = hasBump ? (BASE_PRICE + BUMP_PRICE) : BASE_PRICE;
+
     if (couponCode.toLowerCase() === 'test') {
         totalAmount = 1; // Override validation
     }
@@ -218,7 +221,7 @@ const CheckoutPage: React.FC = () => {
         // ACTION: payment_intent (Flat Data)
         formData.append("action", "payment_intent");
         formData.append("hasBump", hasBump.toString());
-        formData.append("couponCode", couponCode); // Send coupon so backend knows amount
+        formData.append("couponCode", couponCode);
         formData.append("items", JSON.stringify([{ id: "guide" }]));
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -234,7 +237,6 @@ const CheckoutPage: React.FC = () => {
             })
             .then((data) => {
                 if (data.error) {
-                    // Handle Stripe's nested error object
                     const msg = data.error.message || JSON.stringify(data.error);
                     throw new Error(msg);
                 }
@@ -302,7 +304,7 @@ const CheckoutPage: React.FC = () => {
                                 <h3 className="font-bold text-xs uppercase text-[#FF4A22]">Priority Application Review</h3>
                                 <p className="text-[10px] opacity-60">Expert feedback on your CV & Video.</p>
                             </div>
-                            <div className="font-dela text-sm text-[#FF4A22]">+$17.00</div>
+                            <div className="font-dela text-sm text-[#FF4A22]">+$49.00</div>
                         </div>
                     )}
 
@@ -311,7 +313,7 @@ const CheckoutPage: React.FC = () => {
                         <span className="font-dela text-lg">TOTAL DUE:</span>
                         <div className="flex flex-col items-end">
                             {couponCode === 'test' && (
-                                <span className="text-xs line-through opacity-50 font-bold">${hasBump ? 36 : 19}.00</span>
+                                <span className="text-xs line-through opacity-50 font-bold">${hasBump ? 68 : 19}.00</span>
                             )}
                             <span className="font-dela text-3xl">${totalAmount}.00</span>
                         </div>
