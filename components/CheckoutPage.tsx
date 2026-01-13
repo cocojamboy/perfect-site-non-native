@@ -233,9 +233,15 @@ const CheckoutPage: React.FC = () => {
                 return res.json();
             })
             .then((data) => {
-                if (data.error) throw new Error(data.error);
-                if (!data.clientSecret) throw new Error("No secret returned from backend.");
-                setClientSecret(data.clientSecret);
+                if (data.error) {
+                    // Handle Stripe's nested error object
+                    const msg = data.error.message || JSON.stringify(data.error);
+                    throw new Error(msg);
+                }
+                // Stripe returns snake_case 'client_secret'
+                const secret = data.client_secret || data.clientSecret;
+                if (!secret) throw new Error("No secret returned from backend.");
+                setClientSecret(secret);
             })
             .catch((err) => {
                 console.error("Payment Init Error:", err);
