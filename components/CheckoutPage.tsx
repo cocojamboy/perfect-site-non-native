@@ -176,7 +176,7 @@ const CheckoutPage: React.FC = () => {
     const totalAmount = hasBump ? 36 : 19;
     const [error, setError] = useState("");
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOIIDAH8uaZVLqQ2-tPYiaUPdN0D7VlmhKe4uXI6QB-xYl1OKGV5hsV-zbwkrvJS_g/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCvr4Bsx7SxChMQRIUqFrxK6jEAwdkbJnjZSq4Uu5Pvt8IZksVlFtTL0_1zhFwlCpU/exec";
 
     useEffect(() => {
         // Use URLSearchParams for simple CORS handling with Google Apps Script
