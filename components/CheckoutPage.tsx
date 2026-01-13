@@ -164,22 +164,35 @@ const CheckoutPage: React.FC = () => {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        // Create PaymentIntent as soon as the page loads (or bump toggles)
-        // Updated to point to new serverless function structure
-        fetch("/api/create-payment-intent", {
+        // Create PaymentIntent via Google Script Backend
+        // This is much more stable than Vercel Functions for this setup
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3zqeRnGWBNpBxox26M0Keit2MOrKrN6rLbh2TEUM4eOXJob8QLK9tPCIzVJbuy71z/exec";
+
+        // We use mode: 'no-cors' for the first post, but here we need a response.
+        // Note: Google Scripts require a specific setup for CORS. If this fails due to CORS,
+        // we might need to use a proxy, but usually 'text/plain' payload works.
+
+        fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items: [{ id: "guide" }], hasBump }),
+            mode: "cors", // Try standard CORS first
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8", // Google prefers this over application/json often to avoid preflight
+            },
+            body: JSON.stringify({ hasBump, items: [{ id: "guide" }] }),
         })
             .then(async (res) => {
-                if (!res.ok) throw new Error("Server Error: " + res.statusText);
+                // Google Redirects handling
+                if (!res.ok) throw new Error("Connection Error: " + res.statusText);
                 return res.json();
             })
             .then((data) => {
                 if (data.error) throw new Error(data.error);
                 setClientSecret(data.clientSecret);
             })
-            .catch((err) => setError(err.message));
+            .catch((err) => {
+                console.error("Payment Init Error:", err);
+                setError(err.message + ". Try refreshing.");
+            });
     }, [hasBump]);
 
     const appearance = {
