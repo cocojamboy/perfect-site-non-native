@@ -85,7 +85,8 @@ const App: React.FC = () => {
     )
   }
 
-  if (path === '/thankyou' || path === '/thank-you') {
+  // Secret route for verified buyers
+  if (path === '/download-guide-success-x9k2') {
     return <ThankYouPage />;
   }
 
