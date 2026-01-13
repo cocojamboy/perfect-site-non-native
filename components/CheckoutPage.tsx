@@ -210,7 +210,7 @@ const CheckoutPage: React.FC = () => {
 
     const [error, setError] = useState("");
 
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjBim-aC45GZnJ1gIoRxOiqF26gS2Yr21W_MvQbduiZnpgkAK5aEsJDwPHxUjrpVu9/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqAact8XPhIY0ZECy5MmlbJW3y7RcNh58dmdgupi94RPYVkWm2TgUXQ5CFCwKohdw/exec";
 
     useEffect(() => {
         const formData = new URLSearchParams();
