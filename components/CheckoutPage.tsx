@@ -136,7 +136,7 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                         Apply
                     </button>
                 </div>
-                {couponApplied === 'test' && (
+                {couponApplied.toLowerCase() === 'test' && (
                     <div className="text-xs font-bold text-green-600 mt-2">
                         ✅ TEST CODE APPLIED (PRICE SET TO $1)
                     </div>
