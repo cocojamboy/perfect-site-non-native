@@ -93,6 +93,17 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                 <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Contact Information</h3>
                 <div className="space-y-4">
                     <div>
+                        <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Full Name</label>
+                        <input
+                            type="text"
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="John Galt"
+                            className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none"
+                        />
+                    </div>
+                    <div>
                         <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Email Address</label>
                         <input
                             type="email"
@@ -100,17 +111,6 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@email.com"
-                            className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="John Doe"
                             className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none"
                         />
                     </div>
@@ -238,7 +238,6 @@ const CheckoutPage: React.FC = () => {
                     const msg = data.error.message || JSON.stringify(data.error);
                     throw new Error(msg);
                 }
-                // Stripe returns snake_case 'client_secret'
                 const secret = data.client_secret || data.clientSecret;
                 if (!secret) throw new Error("No secret returned from backend.");
                 setClientSecret(secret);
