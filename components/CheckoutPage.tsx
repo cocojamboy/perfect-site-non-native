@@ -1,25 +1,140 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+// Initialize Stripe outside component to avoid recreation
+const stripePromise = loadStripe('pk_test_47byyvSBHt64SH0zPiMhRyGh009GFPTuQG');
+
+const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+
+    const [message, setMessage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!stripe || !elements) {
+            return;
+        }
+
+        setIsLoading(true);
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                // Return URL where the user is redirected after payment
+                return_url: `${window.location.origin}/download-guide-success-x9k2`,
+            },
+        });
+
+        if (error.type === "card_error" || error.type === "validation_error") {
+            setMessage(error.message as string);
+        } else {
+            setMessage("An unexpected error occurred.");
+        }
+
+        setIsLoading(false);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-6">
+
+            {/* Contact Info */}
+            <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Contact Information</h3>
+            <div className="space-y-4">
+                {/* Stripe's Link Authentication Element automatically handles email */}
+                <div className="border border-black p-1 rounded">
+                    {/* Note: In a full implementation we might collect Email separate or let Stripe handle it */}
+                    {/* For now, we assume PaymentElement handles a lot, but let's keep visual consistency */}
+                </div>
+            </div>
+
+            {/* Payment Element (Cards, Apple Pay, etc) */}
+            <div className="border-2 border-black p-4 rounded bg-white">
+                <PaymentElement />
+            </div>
+
+            {/* MESSAGE CONTAINER */}
+            {message && <div className="text-red-500 text-sm font-bold text-center">{message}</div>}
+
+            {/* ORDER BUMP */}
+            <div className="border-2 border-dashed border-[#FF4A22] bg-[#FFF0EB] p-4 rounded relative mt-6">
+                <div className="absolute -top-3 left-4 bg-[#FF4A22] text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
+                    One-Time Offer
+                </div>
+                <label className="flex items-start gap-4 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={hasBump}
+                        onChange={(e) => setHasBump(e.target.checked)}
+                        className="mt-1 w-5 h-5 accent-[#FF4A22]"
+                    />
+                    <div>
+                        <div className="font-bold text-sm text-[#FF4A22] uppercase mb-1">
+                            Yes! Add Priority Application Review (+$17)
+                        </div>
+                        <p className="text-[11px] leading-tight opacity-70">
+                            Get your CV & Intro Video reviewed by our team with feedback within 48 hours. Ensure you don't get filtered out.
+                        </p>
+                    </div>
+                </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+                type="submit"
+                disabled={isLoading || !stripe || !elements}
+                className="w-full bg-[#FF4A22] text-white border-2 border-black p-4 font-dela text-lg uppercase tracking-wider sticker-shadow hover:translate-x-1 hover:translate-y-1 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {isLoading ? 'Processing...' : `COMPLETE ORDER • $${totalAmount}`}
+            </button>
+
+            <div className="text-center">
+                <p className="text-[10px] opacity-40 font-bold uppercase">
+                    <span className="mr-2">🔒 Secure Payment</span>
+                    <span className="mr-2">•</span>
+                    <span>256-Bit SSL Encryption</span>
+                </p>
+            </div>
+        </form>
+    );
+};
 
 const CheckoutPage: React.FC = () => {
-    // Form State
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [clientSecret, setClientSecret] = useState("");
+    const [hasBump, setHasBump] = useState(false);
 
-    // Mock Payment Handler (This would use Stripe logic in production)
-    const handlePayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsProcessing(true);
+    // Base Price $19 + Bump $17
+    const totalAmount = hasBump ? 36 : 19;
 
-        // 1. Send data to Google Sheets (Example logic)
-        // await postToGoogleSheets({ name, email });
+    useEffect(() => {
+        // Create PaymentIntent as soon as the page loads (or bump toggles)
+        fetch("/api/create-payment-intent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: [{ id: "guide" }], hasBump }),
+        })
+            .then((res) => res.json())
+            .then((data) => setClientSecret(data.clientSecret));
+    }, [hasBump]);
 
-        // 2. Simulate Payment Delay
-        setTimeout(() => {
-            setIsProcessing(false);
-            alert("This is a DEMO checkout. In production, this would charge the card via Stripe.");
-        }, 1500);
+    const appearance = {
+        theme: 'stripe' as const,
+        variables: {
+            colorPrimary: '#FF4A22',
+            colorBackground: '#ffffff',
+            colorText: '#000000',
+            fontFamily: '"Montserrat", system-ui, sans-serif',
+            borderRadius: '0px', // Brutalist style
+        },
+    };
+
+    const options = {
+        clientSecret,
+        appearance,
     };
 
     return (
@@ -35,11 +150,11 @@ const CheckoutPage: React.FC = () => {
 
                 {/* Product Box */}
                 <div className="mb-8">
-                    <div className="text-sm font-bold opacity-40 uppercase tracking-widest mb-4">Orde Summary</div>
+                    <div className="text-sm font-bold opacity-40 uppercase tracking-widest mb-4">Order Summary</div>
                     <div className="bg-white border-2 border-black p-6 card-shadow flex gap-4 items-start">
-                        <img src="/photo/guide-cover-mockup.png" alt="Guide Cover" className="w-20 h-auto border border-black" />
+                        <img src="/photo/guide-cover-mockup.png" alt="Guide" className="w-20 h-auto border border-black bg-gray-200" />
                         <div className="flex-1">
-                            <h3 className="font-dela text-lg leading-tight mb-1">Vietnam Teaching Guide (2025 Edition)</h3>
+                            <h3 className="font-dela text-lg leading-tight mb-1">Vietnam Teaching Guide (2025)</h3>
                             <ul className="text-[10px] font-bold opacity-60 space-y-1 mb-3">
                                 <li>+ 30-Day Hire Plan</li>
                                 <li>+ Interview Cheat Sheet</li>
@@ -51,6 +166,25 @@ const CheckoutPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Order Bump Summary Item */}
+                    {hasBump && (
+                        <div className="bg-[#FFF0EB] border-2 border-black border-t-0 p-4 flex gap-4 items-center animate-pulse-once">
+                            <div className="text-2xl">⚡</div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-xs uppercase text-[#FF4A22]">Priority Application Review</h3>
+                                <p className="text-[10px] opacity-60">Expert feedback on your CV & Video.</p>
+                            </div>
+                            <div className="font-dela text-sm text-[#FF4A22]">+$17.00</div>
+                        </div>
+                    )}
+
+                    {/* Total */}
+                    <div className="mt-6 flex justify-between items-end border-t-4 border-black pt-4">
+                        <span className="font-dela text-lg">TOTAL DUE:</span>
+                        <span className="font-dela text-3xl">${totalAmount}.00</span>
+                    </div>
+
                 </div>
 
                 {/* Trust Badges */}
@@ -62,107 +196,24 @@ const CheckoutPage: React.FC = () => {
                         <span className="text-green-600">✔</span> Secure 256-bit SSL Encryption
                     </div>
                     <div className="flex items-center gap-2 text-xs font-bold">
-                        <span className="text-green-600">✔</span> Instant Digital Delivery (Email)
-                    </div>
-                </div>
-
-                {/* Testimonial */}
-                <div className="mt-12 pt-8 border-t-2 border-black/10">
-                    <p className="text-sm italic font-serif leading-relaxed mb-4">
-                        "I was skeptical because I don't have a passport from a 'native' country. This guide showed me exactly how to bypass the filters. Hired in 3 weeks."
-                    </p>
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-black"></div>
-                        <div>
-                            <div className="font-bold text-xs uppercase">Maria S.</div>
-                            <div className="text-[10px] opacity-60 uppercase">Now teaching in Da Nang</div>
-                        </div>
+                        <span className="text-green-600">✔</span> Instant Digital Delivery
                     </div>
                 </div>
             </div>
 
             {/* RIGHT: Payment Form */}
             <div className="w-full md:w-1/2 bg-white p-8 md:p-12 lg:p-20 relative">
+                <h2 className="font-dela text-2xl mb-8 uppercase">Secure Payment</h2>
 
-                <h2 className="font-dela text-2xl mb-8 uppercase">Secure Checkout</h2>
-
-                <form onSubmit={handlePayment} className="space-y-6 max-w-md">
-
-                    {/* Contact Info */}
-                    <div>
-                        <label className="block text-xs font-bold uppercase mb-2 tracking-widest">Email Address</label>
-                        <input
-                            type="email"
-                            required
-                            placeholder="you@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full border-2 border-black p-4 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors"
-                        />
+                {clientSecret ? (
+                    <Elements options={options} stripe={stripePromise}>
+                        <CheckoutForm totalAmount={totalAmount} hasBump={hasBump} setHasBump={setHasBump} />
+                    </Elements>
+                ) : (
+                    <div className="flex justify-center items-center h-40">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
                     </div>
-
-                    <div>
-                        <label className="block text-xs font-bold uppercase mb-2 tracking-widest">Full Name</label>
-                        <input
-                            type="text"
-                            required
-                            placeholder="Your Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full border-2 border-black p-4 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors"
-                        />
-                    </div>
-
-                    {/* Payment Section (Mocking Stripe Elements) */}
-                    <div className="pt-6 border-t-2 border-black/10">
-                        <label className="block text-xs font-bold uppercase mb-4 tracking-widest">Payment Method</label>
-
-                        {/* Fake Stripe Element Container */}
-                        <div className="border-2 border-black p-4 rounded mb-4 bg-gray-50">
-                            <div className="flex justify-between items-center mb-4 opacity-50">
-                                <span className="text-xs font-bold">Credit/Debit Card</span>
-                                <div className="flex gap-2">
-                                    <img src="https://img.icons8.com/ios-filled/50/000000/visa.png" className="h-4" alt="Visa" />
-                                    <img src="https://img.icons8.com/ios-filled/50/000000/mastercard.png" className="h-4" alt="Mastercard" />
-                                </div>
-                            </div>
-                            {/* This input mocks the Stripe Element iframe */}
-                            <input
-                                type="text"
-                                placeholder="0000 0000 0000 0000"
-                                className="w-full bg-transparent border-b border-gray-300 py-2 text-sm outline-none mb-4"
-                                disabled
-                            />
-                            <div className="flex gap-4">
-                                <input type="text" placeholder="MM/YY" className="w-1/2 bg-transparent border-b border-gray-300 py-2 text-sm outline-none" disabled />
-                                <input type="text" placeholder="CVC" className="w-1/2 bg-transparent border-b border-gray-300 py-2 text-sm outline-none" disabled />
-                            </div>
-                        </div>
-
-                        {/* Apple Pay Button (Mock) */}
-                        <button type="button" className="w-full bg-black text-white py-3 rounded flex justify-center items-center gap-2 font-bold mb-6 hover:opacity-90 transition-opacity">
-                            <span className="text-lg"></span> Pay
-                        </button>
-                    </div>
-
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={isProcessing}
-                        className="w-full bg-[#FF4A22] text-white border-2 border-black p-4 font-dela text-lg uppercase tracking-wider sticker-shadow hover:translate-x-1 hover:translate-y-1 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isProcessing ? 'Processing...' : 'Complete Order • $19'}
-                    </button>
-
-                    <div className="text-center">
-                        <p className="text-[10px] opacity-40 font-bold uppercase">
-                            <span className="mr-2">🔒 Secure Payment</span>
-                            <span className="mr-2">•</span>
-                            <span>Powered by Stripe</span>
-                        </p>
-                    </div>
-
-                </form>
+                )}
             </div>
         </div>
     );
