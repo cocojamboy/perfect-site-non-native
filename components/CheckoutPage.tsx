@@ -165,7 +165,7 @@ const CheckoutPage: React.FC = () => {
 
     useEffect(() => {
         // Create PaymentIntent via Google Script Backend
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzp0qYW_2F6pY3-RuGxmWUL_stUrA9yyk2v4wjWzVB30wN2nWN3rA_tBmwHZrjJmCW7/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0u5ylpMKAKAIKVlfgYI0LxupltYCC4H-ju-H6i7K3KkHBT8C_8i1yFS0zGXQJO95b/exec";
 
         // Use URLSearchParams for simple CORS handling with Google Apps Script
         const formData = new URLSearchParams();
