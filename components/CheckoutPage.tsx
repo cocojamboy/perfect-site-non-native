@@ -6,7 +6,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 // Initialize Stripe outside component to avoid recreation
 const stripePromise = loadStripe('pk_test_47byyvSBHt64SH0zPiMhRyGh009GFPTuQG');
 
-const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
+const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => {
     const stripe = useStripe();
     const elements = useElements();
 
@@ -26,29 +26,11 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
 
         setIsLoading(true);
 
-        // 1. Send Order Data to Google Sheets
-        try {
-            await fetch("https://script.google.com/macros/s/AKfycbzdXm1jyTehWAOWccULrI4CFIWRA4udZwt3WNufR4RN85uKLS7o1leK8rHubh26oIkR/exec", {
-                method: "POST",
-                mode: "no-cors", // Important for Google Apps Script
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: name,
-                    email: email,
-                    amount: totalAmount,
-                    product: hasBump ? "Guide + Priority VIP" : "Guide Standard",
-                    id: "PENDING_STRIPE_CONFIRMATION"
-                })
-            });
-        } catch (err) {
-            console.error("Google Sheets Error:", err);
-            // Continue processing payment
-        }
-
-        const { error } = await stripe.confirmPayment({
+        // 1. CONFIRM PAYMENT
+        const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
+            redirect: 'if_required', // Manual redirect handling to allow us to send email first
             confirmParams: {
-                // Return URL where the user is redirected after payment
                 return_url: `${window.location.origin}/download-guide-success-x9k2`,
                 payment_method_data: {
                     billing_details: {
@@ -59,13 +41,45 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
             },
         });
 
-        if (error.type === "card_error" || error.type === "validation_error") {
-            setMessage(error.message as string);
-        } else {
-            setMessage("An unexpected error occurred.");
+        if (error) {
+            if (error.type === "card_error" || error.type === "validation_error") {
+                setMessage(error.message as string);
+            } else {
+                setMessage("An unexpected error occurred.");
+            }
+            setIsLoading(false);
+            return;
         }
 
-        setIsLoading(false);
+        if (paymentIntent && paymentIntent.status === 'succeeded') {
+            // 2. PAYMENT SUCCESS -> TRIGGER EMAIL & LOGGING
+            try {
+                const formData = new URLSearchParams();
+                formData.append("data", JSON.stringify({
+                    action: "send_fulfillment",
+                    name: name,
+                    email: email,
+                    amount: totalAmount,
+                    // We don't need bump details here as they are in the payment metadata, 
+                    // but good for logging
+                    hasBump: hasBump
+                }));
+
+                await fetch(googleScriptUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: formData.toString()
+                });
+
+                // 3. REDIRECT TO THANK YOU PAGE
+                window.location.href = "/download-guide-success-x9k2";
+
+            } catch (err) {
+                console.error("Fulfillment Error:", err);
+                // Even if email fails, payment worked, so redirect anyway
+                window.location.href = "/download-guide-success-x9k2";
+            }
+        }
     };
 
     return (
@@ -160,16 +174,20 @@ const CheckoutPage: React.FC = () => {
 
     // Base Price $19 + Bump $17
     const totalAmount = hasBump ? 36 : 19;
-
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        // Create PaymentIntent via Google Script Backend
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0u5ylpMKAKAIKVlfgYI0LxupltYCC4H-ju-H6i7K3KkHBT8C_8i1yFS0zGXQJO95b/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0u5ylpMKAKAIKVlfgYI0LxupltYCC4H-ju-H6i7K3KkHBT8C_8i1yFS0zGXQJO95b/exec";
 
+    useEffect(() => {
         // Use URLSearchParams for simple CORS handling with Google Apps Script
         const formData = new URLSearchParams();
-        formData.append("data", JSON.stringify({ hasBump, items: [{ id: "guide" }] }));
+
+        // ACTION: payment_intent
+        formData.append("data", JSON.stringify({
+            action: "payment_intent",
+            hasBump,
+            items: [{ id: "guide" }]
+        }));
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
@@ -283,7 +301,12 @@ const CheckoutPage: React.FC = () => {
                     </div>
                 ) : clientSecret ? (
                     <Elements options={options} stripe={stripePromise}>
-                        <CheckoutForm totalAmount={totalAmount} hasBump={hasBump} setHasBump={setHasBump} />
+                        <CheckoutForm
+                            totalAmount={totalAmount}
+                            hasBump={hasBump}
+                            setHasBump={setHasBump}
+                            googleScriptUrl={GOOGLE_SCRIPT_URL}
+                        />
                     </Elements>
                 ) : (
                     <div className="flex justify-center items-center h-40">

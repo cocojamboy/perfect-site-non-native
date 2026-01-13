@@ -50,9 +50,9 @@ const ThankYouPage: React.FC = () => {
                                 <h4 className="font-dela text-lg mb-4">DOWNLOAD YOUR FILES</h4>
 
                                 <div className="space-y-3">
-                                    {/* Main Guide */}
-                                    <a href="https://drive.google.com/file/d/1lXOyq-etGyx_pTDAFj-YOR7Ce6XE0z20/view?usp=share_link" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-black text-white px-4 py-3 font-dela text-xs sticker-shadow hover:translate-x-1 hover:translate-y-1 transition-all group">
-                                        <span>📘 MAIN GUIDE</span>
+                                    {/* Main Guide (Gamma) */}
+                                    <a href="https://gamma.app/docs/NOT-NATIVE-NOT-SORRY-wppdiizk4mr84w6" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-black text-white px-4 py-3 font-dela text-xs sticker-shadow hover:translate-x-1 hover:translate-y-1 transition-all group">
+                                        <span>📘 MAIN GUIDE (ACCESS NOW)</span>
                                         <span className="opacity-50 group-hover:opacity-100">→</span>
                                     </a>
 
