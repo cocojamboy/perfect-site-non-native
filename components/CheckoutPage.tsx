@@ -224,7 +224,7 @@ const CheckoutPage: React.FC = () => {
                 <div className="mb-8">
                     <div className="text-sm font-bold opacity-40 uppercase tracking-widest mb-4">Order Summary</div>
                     <div className="bg-white border-2 border-black p-6 card-shadow flex gap-4 items-start">
-                        <img src="/photo/guide-cover-mockup.png" alt="Guide" className="w-20 h-auto border border-black bg-gray-200" />
+                        <img src="/photo/guide_mockup.jpg" alt="Guide" className="w-20 h-auto border border-black bg-gray-200" />
                         <div className="flex-1">
                             <h3 className="font-dela text-lg leading-tight mb-1">Vietnam Teaching Guide (2025)</h3>
                             <ul className="text-[10px] font-bold opacity-60 space-y-1 mb-3">
