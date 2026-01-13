@@ -35,6 +35,13 @@ const App: React.FC = () => {
       setPath(window.location.pathname);
     };
 
+    // Affiliate Tracking Logic
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      localStorage.setItem('referral', ref);
+    }
+
     window.addEventListener('popstate', handleLocationChange);
 
     // Intersection Observer for scroll animations

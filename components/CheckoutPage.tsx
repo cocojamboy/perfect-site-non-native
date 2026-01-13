@@ -67,6 +67,9 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                 formData.append("hasBump", hasBump.toString());
                 formData.append("couponCode", couponApplied || "");
 
+                const storedRef = localStorage.getItem('referral');
+                if (storedRef) formData.append("referral", storedRef);
+
                 await fetch(googleScriptUrl, {
                     method: "POST",
                     mode: "no-cors",
