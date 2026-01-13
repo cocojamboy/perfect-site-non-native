@@ -161,6 +161,8 @@ const CheckoutPage: React.FC = () => {
     // Base Price $19 + Bump $17
     const totalAmount = hasBump ? 36 : 19;
 
+    const [error, setError] = useState("");
+
     useEffect(() => {
         // Create PaymentIntent as soon as the page loads (or bump toggles)
         fetch("/api/create-payment-intent", {
@@ -168,8 +170,15 @@ const CheckoutPage: React.FC = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ items: [{ id: "guide" }], hasBump }),
         })
-            .then((res) => res.json())
-            .then((data) => setClientSecret(data.clientSecret));
+            .then(async (res) => {
+                if (!res.ok) throw new Error("Server Error: " + res.statusText);
+                return res.json();
+            })
+            .then((data) => {
+                if (data.error) throw new Error(data.error);
+                setClientSecret(data.clientSecret);
+            })
+            .catch((err) => setError(err.message));
     }, [hasBump]);
 
     const appearance = {
@@ -256,7 +265,11 @@ const CheckoutPage: React.FC = () => {
             <div className="w-full md:w-1/2 bg-white p-8 md:p-12 lg:p-20 relative">
                 <h2 className="font-dela text-2xl mb-8 uppercase">Secure Payment</h2>
 
-                {clientSecret ? (
+                {error ? (
+                    <div className="text-red-500 font-bold p-4 border-2 border-red-500 bg-red-50 text-center">
+                        ⚠️ Payment System Error: <br />{error}
+                    </div>
+                ) : clientSecret ? (
                     <Elements options={options} stripe={stripePromise}>
                         <CheckoutForm totalAmount={totalAmount} hasBump={hasBump} setHasBump={setHasBump} />
                     </Elements>
