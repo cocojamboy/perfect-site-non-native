@@ -10,6 +10,10 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
     const stripe = useStripe();
     const elements = useElements();
 
+    // Customer Info State
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
+
     const [message, setMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -22,11 +26,36 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
 
         setIsLoading(true);
 
+        // 1. Send Order Data to Google Sheets
+        try {
+            await fetch("https://script.google.com/macros/s/AKfycbzdXm1jyTehWAOWccULrI4CFIWRA4udZwt3WNufR4RN85uKLS7o1leK8rHubh26oIkR/exec", {
+                method: "POST",
+                mode: "no-cors", // Important for Google Apps Script
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    amount: totalAmount,
+                    product: hasBump ? "Guide + Priority VIP" : "Guide Standard",
+                    id: "PENDING_STRIPE_CONFIRMATION"
+                })
+            });
+        } catch (err) {
+            console.error("Google Sheets Error:", err);
+            // Continue processing payment
+        }
+
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
                 // Return URL where the user is redirected after payment
                 return_url: `${window.location.origin}/download-guide-success-x9k2`,
+                payment_method_data: {
+                    billing_details: {
+                        name: name,
+                        email: email
+                    }
+                }
             },
         });
 
@@ -43,18 +72,40 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump }) => {
         <form onSubmit={handleSubmit} className="space-y-6">
 
             {/* Contact Info */}
-            <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Contact Information</h3>
-            <div className="space-y-4">
-                {/* Stripe's Link Authentication Element automatically handles email */}
-                <div className="border border-black p-1 rounded">
-                    {/* Note: In a full implementation we might collect Email separate or let Stripe handle it */}
-                    {/* For now, we assume PaymentElement handles a lot, but let's keep visual consistency */}
+            <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest mb-4">Contact Information</h3>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Email Address</label>
+                        <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@email.com"
+                            className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Full Name</label>
+                        <input
+                            type="text"
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="John Doe"
+                            className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none"
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Payment Element (Cards, Apple Pay, etc) */}
-            <div className="border-2 border-black p-4 rounded bg-white">
-                <PaymentElement />
+            <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest mb-4 mt-6">Payment Details</h3>
+                <div className="border-2 border-black p-4 rounded bg-white">
+                    <PaymentElement />
+                </div>
             </div>
 
             {/* MESSAGE CONTAINER */}
