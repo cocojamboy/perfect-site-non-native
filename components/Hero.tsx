@@ -34,7 +34,7 @@ const Hero: React.FC = () => {
           The <span className="highlight-marker uppercase underline decoration-4 decoration-[#FF4A22]">no-scam</span> guide for non-native English speakers to get hired in Vietnam.
         </p>
 
-        <a href="https://up2uagency.systeme.io/checkout" className="inline-block bg-[#FF4A22] text-white font-dela text-xl md:text-2xl px-10 py-5 border-2 border-black card-shadow hover:translate-x-1 hover:translate-y-1 transition-all w-full md:w-auto text-center">
+        <a href="/checkout" className="inline-block bg-[#FF4A22] text-white font-dela text-xl md:text-2xl px-10 py-5 border-2 border-black card-shadow hover:translate-x-1 hover:translate-y-1 transition-all w-full md:w-auto text-center">
           GET HIRED IN 30 DAYS — $19
         </a>
 

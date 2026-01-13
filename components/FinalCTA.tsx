@@ -29,7 +29,7 @@ const FinalCTA: React.FC = () => {
             <div className="text-6xl font-dela mb-2 tracking-tighter">$19</div>
             <p className="text-[10px] uppercase font-bold tracking-[0.3em] opacity-40 mb-8">NO SUBSCRIPTION • ONE-TIME BUY</p>
 
-            <a href="https://up2uagency.systeme.io/checkout" className="inline-block bg-[#FF4A22] text-white w-full py-5 font-dela text-xl border-2 border-black sticker-shadow hover:translate-y-1 transition-all text-center">
+            <a href="/checkout" className="inline-block bg-[#FF4A22] text-white w-full py-5 font-dela text-xl border-2 border-black sticker-shadow hover:translate-y-1 transition-all text-center">
               DOWNLOAD ROADMAP NOW
             </a>
 

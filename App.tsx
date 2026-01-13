@@ -91,8 +91,8 @@ const App: React.FC = () => {
     return <ThankYouPage />;
   }
 
-  // TEMP: Checkout Demo Page
-  if (path === '/checkout-demo') {
+  // LIVE: Checkout Page
+  if (path === '/checkout') {
     return <CheckoutPage />;
   }
 

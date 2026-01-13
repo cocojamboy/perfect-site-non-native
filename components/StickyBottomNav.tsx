@@ -30,7 +30,7 @@ const StickyBottomNav: React.FC = () => {
                     <div className="md:hidden">
                         <span className="font-dela text-xl">$19</span>
                     </div>
-                    <a href="https://up2uagency.systeme.io/checkout" className="flex-1 md:flex-none bg-[#FF4A22] text-white font-dela text-sm md:text-base px-6 py-3 border-2 border-black text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                    <a href="/checkout" className="flex-1 md:flex-none bg-[#FF4A22] text-white font-dela text-sm md:text-base px-6 py-3 border-2 border-black text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
                         GET THE GUIDE
                     </a>
                 </div>
