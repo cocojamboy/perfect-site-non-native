@@ -71,7 +71,7 @@ const GallerySection: React.FC = () => {
 
                 <div className="mt-20">
                     <p className="text-2xl font-dela accent-text mb-4 italic">READY TO START YOUR CHAPTER?</p>
-                    <a href="https://up2uagency.systeme.io/checkout" className="inline-block bg-black text-white px-12 py-5 font-dela text-xl hover:bg-[#FF4A22] transition-colors card-shadow">
+                    <a href="/checkout" className="inline-block bg-black text-white px-12 py-5 font-dela text-xl hover:bg-[#FF4A22] transition-colors card-shadow">
                         GET THE GUIDE NOW
                     </a>
                 </div>

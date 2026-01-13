@@ -23,7 +23,7 @@ const SiteFooter: React.FC = () => {
 
                 {/* Single Row Nav */}
                 <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-8 font-bold uppercase text-[9px] tracking-widest text-gray-500">
-                    <a href="https://up2uagency.systeme.io/checkout" className="hover:text-[#FF4A22] transition-all">Guide</a>
+                    <a href="/checkout" className="hover:text-[#FF4A22] transition-all">Guide</a>
                     <span className="opacity-20">•</span>
                     <a href="/privacy" className="hover:text-[#FF4A22] transition-all">Privacy</a>
                     <span className="opacity-20">•</span>

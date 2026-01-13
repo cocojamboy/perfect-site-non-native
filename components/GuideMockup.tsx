@@ -34,7 +34,7 @@ const GuideMockup: React.FC = () => {
                                 </li>
                             </ul>
                         </div>
-                        <a href="https://up2uagency.systeme.io/checkout" className="inline-block bg-[#FF4A22] text-white font-dela text-xl px-10 py-5 border-2 border-black card-shadow hover:translate-x-1 hover:translate-y-1 transition-all">
+                        <a href="/checkout" className="inline-block bg-[#FF4A22] text-white font-dela text-xl px-10 py-5 border-2 border-black card-shadow hover:translate-x-1 hover:translate-y-1 transition-all">
                             GET INSTANT ACCESS
                         </a>
                     </div>
