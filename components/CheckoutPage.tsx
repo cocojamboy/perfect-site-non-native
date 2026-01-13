@@ -338,7 +338,7 @@ const CheckoutPage: React.FC = () => {
                         ⚠️ Payment System Error: <br />{error}
                     </div>
                 ) : clientSecret ? (
-                    <Elements options={options} stripe={stripePromise}>
+                    <Elements key={clientSecret} options={options} stripe={stripePromise}>
                         <CheckoutForm
                             totalAmount={totalAmount}
                             hasBump={hasBump}
