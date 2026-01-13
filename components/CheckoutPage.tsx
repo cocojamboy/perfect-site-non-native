@@ -196,6 +196,34 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApp
                     <span>256-Bit SSL Encryption</span>
                 </p>
             </div>
+
+            {/* Crypto Options */}
+            <div className="mt-8 pt-8 border-t-2 border-dashed border-black/10">
+                <h3 className="text-xs font-bold uppercase tracking-widest mb-4 text-center opacity-60">
+                    Prefer Crypto? (Save Extra)
+                </h3>
+                <div className="flex gap-3">
+                    <a
+                        href="https://nowpayments.io/payment/?iid=5423845862"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 bg-gray-900 text-white text-center py-3 font-dela text-[10px] uppercase hover:bg-[#FF4A22] transition-colors border-2 border-transparent hover:border-black"
+                    >
+                        Guide Only ($18)
+                    </a>
+                    <a
+                        href="https://nowpayments.io/payment/?iid=5490702341"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 bg-gray-900 text-white text-center py-3 font-dela text-[10px] uppercase hover:bg-[#FF4A22] transition-colors border-2 border-transparent hover:border-black"
+                    >
+                        Bundle ($66)
+                    </a>
+                </div>
+                <p className="text-[9px] text-center mt-2 opacity-40 uppercase font-bold">
+                    *Instant download via Email
+                </p>
+            </div>
         </form>
     );
 };
