@@ -54,29 +54,27 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
         if (paymentIntent && paymentIntent.status === 'succeeded') {
             // 2. PAYMENT SUCCESS -> TRIGGER EMAIL & LOGGING
             try {
+                // Send FLAT data (no JSON nesting) for maximum compatibility with Google Script
                 const formData = new URLSearchParams();
-                formData.append("data", JSON.stringify({
-                    action: "send_fulfillment",
-                    name: name,
-                    email: email,
-                    amount: totalAmount,
-                    // We don't need bump details here as they are in the payment metadata, 
-                    // but good for logging
-                    hasBump: hasBump
-                }));
+                formData.append("action", "send_fulfillment");
+                formData.append("name", name);
+                formData.append("email", email);
+                formData.append("amount", totalAmount.toString());
+                formData.append("hasBump", hasBump.toString());
 
+                // Fire-and-forget request
                 await fetch(googleScriptUrl, {
                     method: "POST",
-                    mode: "no-cors", // Fire and forget (don't wait for CORS) to ensure it sends
+                    mode: "no-cors",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: formData.toString()
                 });
 
-                // Small delay to ensure network request leaves the browser
+                // 1-second delay to guarantee the request leaves the browser before redirect
                 setTimeout(() => {
                     // 3. REDIRECT TO THANK YOU PAGE
                     window.location.href = "/download-guide-success-x9k2";
-                }, 500);
+                }, 1000);
 
             } catch (err) {
                 console.error("Fulfillment Error:", err);
@@ -180,19 +178,17 @@ const CheckoutPage: React.FC = () => {
     const totalAmount = hasBump ? 36 : 19;
     const [error, setError] = useState("");
 
-    // Updated V8 URL
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCvr4Bsx7SxChMQRIUqFrxK6jEAwdkbJnjZSq4Uu5Pvt8IZksVlFtTL0_1zhFwlCpU/exec";
+    // Updated V9 URL
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRvnaJf5Y7wPdDTKr1J_o-D_oG1dfj10g6BhUWZSDYyZCsIrOoBkm-ZQa_jpjpsCJ-/exec";
 
     useEffect(() => {
         // Use URLSearchParams for simple CORS handling with Google Apps Script
         const formData = new URLSearchParams();
 
-        // ACTION: payment_intent
-        formData.append("data", JSON.stringify({
-            action: "payment_intent",
-            hasBump,
-            items: [{ id: "guide" }]
-        }));
+        // ACTION: payment_intent (Flat Data)
+        formData.append("action", "payment_intent");
+        formData.append("hasBump", hasBump.toString());
+        formData.append("items", JSON.stringify([{ id: "guide" }]));
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
