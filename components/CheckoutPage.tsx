@@ -165,28 +165,26 @@ const CheckoutPage: React.FC = () => {
 
     useEffect(() => {
         // Create PaymentIntent via Google Script Backend
-        // This is much more stable than Vercel Functions for this setup
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3zqeRnGWBNpBxox26M0Keit2MOrKrN6rLbh2TEUM4eOXJob8QLK9tPCIzVJbuy71z/exec";
 
-        // We use mode: 'no-cors' for the first post, but here we need a response.
-        // Note: Google Scripts require a specific setup for CORS. If this fails due to CORS,
-        // we might need to use a proxy, but usually 'text/plain' payload works.
+        // Use URLSearchParams for simple CORS handling with Google Apps Script
+        const formData = new URLSearchParams();
+        formData.append("data", JSON.stringify({ hasBump, items: [{ id: "guide" }] }));
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: "POST",
-            mode: "cors", // Try standard CORS first
             headers: {
-                "Content-Type": "text/plain;charset=utf-8", // Google prefers this over application/json often to avoid preflight
+                "Content-Type": "application/x-www-form-urlencoded",
             },
-            body: JSON.stringify({ hasBump, items: [{ id: "guide" }] }),
+            body: formData.toString(),
         })
             .then(async (res) => {
-                // Google Redirects handling
                 if (!res.ok) throw new Error("Connection Error: " + res.statusText);
                 return res.json();
             })
             .then((data) => {
                 if (data.error) throw new Error(data.error);
+                if (!data.clientSecret) throw new Error("No secret returned from backend.");
                 setClientSecret(data.clientSecret);
             })
             .catch((err) => {
