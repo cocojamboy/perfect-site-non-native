@@ -6,16 +6,21 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 // Initialize Stripe outside component to avoid recreation
 const stripePromise = loadStripe('pk_test_47byyvSBHt64SH0zPiMhRyGh009GFPTuQG');
 
-const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => {
+const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApplyCoupon, couponApplied }) => {
     const stripe = useStripe();
     const elements = useElements();
 
     // Customer Info State
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
+    const [couponInput, setCouponInput] = useState('');
 
     const [message, setMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const handleApplyCoupon = () => {
+        onApplyCoupon(couponInput);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,7 +34,7 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
         // 1. CONFIRM PAYMENT
         const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
-            redirect: 'if_required', // Manual redirect handling to allow us to send email first
+            redirect: 'if_required',
             confirmParams: {
                 return_url: `${window.location.origin}/download-guide-success-x9k2`,
                 payment_method_data: {
@@ -54,15 +59,14 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
         if (paymentIntent && paymentIntent.status === 'succeeded') {
             // 2. PAYMENT SUCCESS -> TRIGGER EMAIL & LOGGING
             try {
-                // Send FLAT data (no JSON nesting) for maximum compatibility with Google Script
                 const formData = new URLSearchParams();
                 formData.append("action", "send_fulfillment");
                 formData.append("name", name);
                 formData.append("email", email);
                 formData.append("amount", totalAmount.toString());
                 formData.append("hasBump", hasBump.toString());
+                formData.append("couponCode", couponApplied || "");
 
-                // Fire-and-forget request
                 await fetch(googleScriptUrl, {
                     method: "POST",
                     mode: "no-cors",
@@ -70,15 +74,12 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
                     body: formData.toString()
                 });
 
-                // 1-second delay to guarantee the request leaves the browser before redirect
                 setTimeout(() => {
-                    // 3. REDIRECT TO THANK YOU PAGE
                     window.location.href = "/download-guide-success-x9k2";
                 }, 1000);
 
             } catch (err) {
                 console.error("Fulfillment Error:", err);
-                // Even if email fails, payment worked, so redirect anyway
                 window.location.href = "/download-guide-success-x9k2";
             }
         }
@@ -116,7 +117,33 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
                 </div>
             </div>
 
-            {/* Payment Element (Cards, Apple Pay, etc) */}
+            {/* Coupon Code Input */}
+            <div>
+                <label className="block text-[10px] font-bold uppercase mb-1 opacity-70">Coupon Code</label>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        placeholder="ENTER CODE"
+                        className="w-full border-2 border-black p-3 font-bold text-sm outline-none focus:bg-[#F8F0DD] transition-colors rounded-none uppercase"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        className="bg-black text-white px-6 font-dela text-xs uppercase hover:bg-[#FF4A22] transition-colors sticker-shadow"
+                    >
+                        Apply
+                    </button>
+                </div>
+                {couponApplied === 'test' && (
+                    <div className="text-xs font-bold text-green-600 mt-2">
+                        ✅ TEST CODE APPLIED (PRICE SET TO $1)
+                    </div>
+                )}
+            </div>
+
+            {/* Payment Element */}
             <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest mb-4 mt-6">Payment Details</h3>
                 <div className="border-2 border-black p-4 rounded bg-white">
@@ -173,21 +200,25 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
 const CheckoutPage: React.FC = () => {
     const [clientSecret, setClientSecret] = useState("");
     const [hasBump, setHasBump] = useState(false);
+    const [couponCode, setCouponCode] = useState("");
 
-    // Base Price $19 + Bump $17
-    const totalAmount = hasBump ? 36 : 19;
+    // Price Logic
+    let totalAmount = hasBump ? 36 : 19;
+    if (couponCode.toLowerCase() === 'test') {
+        totalAmount = 1; // Override validation
+    }
+
     const [error, setError] = useState("");
 
-    // Updated V9 URL
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRvnaJf5Y7wPdDTKr1J_o-D_oG1dfj10g6BhUWZSDYyZCsIrOoBkm-ZQa_jpjpsCJ-/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxjBim-aC45GZnJ1gIoRxOiqF26gS2Yr21W_MvQbduiZnpgkAK5aEsJDwPHxUjrpVu9/exec";
 
     useEffect(() => {
-        // Use URLSearchParams for simple CORS handling with Google Apps Script
         const formData = new URLSearchParams();
 
         // ACTION: payment_intent (Flat Data)
         formData.append("action", "payment_intent");
         formData.append("hasBump", hasBump.toString());
+        formData.append("couponCode", couponCode); // Send coupon so backend knows amount
         formData.append("items", JSON.stringify([{ id: "guide" }]));
 
         fetch(GOOGLE_SCRIPT_URL, {
@@ -210,7 +241,7 @@ const CheckoutPage: React.FC = () => {
                 console.error("Payment Init Error:", err);
                 setError(err.message + ". Try refreshing.");
             });
-    }, [hasBump]);
+    }, [hasBump, couponCode]);
 
     const appearance = {
         theme: 'stripe' as const,
@@ -219,7 +250,7 @@ const CheckoutPage: React.FC = () => {
             colorBackground: '#ffffff',
             colorText: '#000000',
             fontFamily: '"Montserrat", system-ui, sans-serif',
-            borderRadius: '0px', // Brutalist style
+            borderRadius: '0px',
         },
     };
 
@@ -273,7 +304,12 @@ const CheckoutPage: React.FC = () => {
                     {/* Total */}
                     <div className="mt-6 flex justify-between items-end border-t-4 border-black pt-4">
                         <span className="font-dela text-lg">TOTAL DUE:</span>
-                        <span className="font-dela text-3xl">${totalAmount}.00</span>
+                        <div className="flex flex-col items-end">
+                            {couponCode === 'test' && (
+                                <span className="text-xs line-through opacity-50 font-bold">${hasBump ? 36 : 19}.00</span>
+                            )}
+                            <span className="font-dela text-3xl">${totalAmount}.00</span>
+                        </div>
                     </div>
 
                 </div>
@@ -282,12 +318,6 @@ const CheckoutPage: React.FC = () => {
                 <div className="space-y-6 opacity-60">
                     <div className="flex items-center gap-2 text-xs font-bold">
                         <span className="text-green-600">✔</span> 7-Day Money Back Guarantee
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-bold">
-                        <span className="text-green-600">✔</span> Secure 256-bit SSL Encryption
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-bold">
-                        <span className="text-green-600">✔</span> Instant Digital Delivery
                     </div>
                 </div>
             </div>
@@ -307,6 +337,8 @@ const CheckoutPage: React.FC = () => {
                             hasBump={hasBump}
                             setHasBump={setHasBump}
                             googleScriptUrl={GOOGLE_SCRIPT_URL}
+                            onApplyCoupon={setCouponCode}
+                            couponApplied={couponCode}
                         />
                     </Elements>
                 ) : (
