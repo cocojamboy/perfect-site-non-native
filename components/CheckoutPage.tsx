@@ -67,12 +67,16 @@ const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl }) => 
 
                 await fetch(googleScriptUrl, {
                     method: "POST",
+                    mode: "no-cors", // Fire and forget (don't wait for CORS) to ensure it sends
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
                     body: formData.toString()
                 });
 
-                // 3. REDIRECT TO THANK YOU PAGE
-                window.location.href = "/download-guide-success-x9k2";
+                // Small delay to ensure network request leaves the browser
+                setTimeout(() => {
+                    // 3. REDIRECT TO THANK YOU PAGE
+                    window.location.href = "/download-guide-success-x9k2";
+                }, 500);
 
             } catch (err) {
                 console.error("Fulfillment Error:", err);
@@ -176,6 +180,7 @@ const CheckoutPage: React.FC = () => {
     const totalAmount = hasBump ? 36 : 19;
     const [error, setError] = useState("");
 
+    // Updated V8 URL
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxCvr4Bsx7SxChMQRIUqFrxK6jEAwdkbJnjZSq4Uu5Pvt8IZksVlFtTL0_1zhFwlCpU/exec";
 
     useEffect(() => {
