@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 // Initialize Stripe outside component to avoid recreation
-const stripePromise = loadStripe('pk_test_47byyvSBHt64SH0zPiMhRyGh009GFPTuQG');
+const stripePromise = loadStripe('pk_live_3Lv3oPF4oFO25xALl6EDl9DJ00PnUuvfRQ');
 
 const CheckoutForm = ({ totalAmount, hasBump, setHasBump, googleScriptUrl, onApplyCoupon, couponApplied }) => {
     const stripe = useStripe();
