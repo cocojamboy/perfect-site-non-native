@@ -7,7 +7,7 @@ const Hero: React.FC = () => {
       <div className="mb-2">
         <div className="flex flex-wrap gap-2 mt-4 mb-2">
           <div className="slanted-badge bg-[#FF4A22] text-white sticker-shadow">
-            VIETNAM EDITION 2026
+            Vietnam Edition 2027
           </div>
           {window.location.search.includes('loc=') && (
             <div className="slanted-badge bg-black text-white sticker-shadow uppercase text-[10px] md:text-xs">
